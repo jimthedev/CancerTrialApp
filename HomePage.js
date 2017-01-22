@@ -25,7 +25,7 @@ export default class HomePage extends Component {
       alert('ID Not Valid');
     }
     //pushes to map page and renders the inputted value
-    this.props.navigator.push(Router.getRoute('test',{data: this.state.value}));
+    this.props.navigator.push(Router.getRoute('test',{id: this.state.value}));
   }
 
 

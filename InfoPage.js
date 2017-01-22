@@ -1,38 +1,75 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity } from 'react-native';
+import axios from 'axios';
 // import Hr from 'react-native-hr';
+import removeTrialSitesOutsideArea from './removeTrialSitesOutsideArea';
 import TestPage from './TestPage';
 
 export default class InfoPage extends React.Component {
-
+  static route = {
+    title: 'info',
+  }
   constructor(props) {
     super(props);
+    console.log('infopage');
     this.state = {
       data: [],
       // disease: this.props.disease
     }
   }
+  
+  componentDidMount() {
+    this.getData();
+  }
+  
+  getData() {
+    console.log('city', this.props.route.params.city)
+    
+    // Lat and long here need to be looked up instead of hard coded
+    console.log("https://clinicaltrialsapi.cancer.gov/v1/clinical-trials?sites.org_coordinates_lat=39.1292&sites.org_coordinates_lon=-77.2953&sites.org_coordinates_dist=20km&diseases.nci_thesaurus_concept_id="+ this.props.route.params.id);
+    axios.get("https://clinicaltrialsapi.cancer.gov/v1/clinical-trials?sites.org_coordinates_lat=39.1292&sites.org_coordinates_lon=-77.2953&sites.org_coordinates_dist=20km&diseases.nci_thesaurus_concept_id="+ this.props.route.params.id)
+    .then((response)=> {
+      
+      // The request above gets any trials with at least one sites within the geo range.
+      let trialsNearbyWithAllSites = response.data.trials;
+      
+      console.log('trials', response.data.trials);
+      let newData = removeTrialSitesOutsideArea(trialsNearbyWithAllSites, {
+        latitude: 39.1292,
+        longitude: -77.2953,
+        radius: 20000 // 20km might not be big enough. If changed also needs to be changed up in api calls
+      })
+      console.log('newdata', newData);
+      this.setState({
+        data: newData
+      })
+    })
+    .catch(function (error) {
+    console.log(error);
+    })
+  }
 
   componentWillReceiveProps(nextProps) {
-    this.setState({
-      data:this.props.data
-      // disease: nextProps.disease
-    })
-    console.log(nextProps.data.trials[0].diseases[0].preferred_name)
+    if(nextProps.data) {
+      this.setState({
+        data: nextProps.data
+        // disease: nextProps.disease
+      })
+    }
   }
 
 
   render() {
-    if (this.state.data.trials && this.state.data.trials.length > 0) {
-      return(
-        <View style={styles.dataContainer}>
-          {this.state.data !== null ? this.state.data.trials.diseases.preferred_name : this.props.trials }
-          <Text>Summary</Text>
-          <Text style={styles.testSummary} >{this.state.data}</Text>
-
-        </View>
-      )
-    }
+    return (
+      <View style={styles.dataContainer}>
+        <Text>Hello world</Text>
+        {this.props.trials && this.props.trials.length > 0 ? this.props.trials.map((trial) => {
+          return <Text>Trial</Text>
+        }) : null }
+        {/* {this.state.data !== null ? this.state.data.trials.diseases.preferred_name : this.props.trials }
+        <Text style={styles.testSummary}>Test Summary</Text> */}
+      </View>
+    )
   }
 }
 
